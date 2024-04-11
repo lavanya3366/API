@@ -41,6 +41,16 @@ from exam.serializers.createcourseserializers import (
     CreateQuizSerializer,
     CreateQuestionSerializer,
 )
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from datetime import datetime
+
 import pandas as pd
 
 class DeleteSelectedCourseView(APIView):
@@ -174,11 +184,7 @@ class DeleteSelectedQuestionView(APIView):
     """
     pass
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from datetime import datetime
+
 
 class DeleteSelectedChoiceView(APIView):
     """
@@ -211,12 +217,6 @@ class DeleteSelectedChoiceView(APIView):
 
 
 # views.py
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils import timezone
-
 class DeleteCourseStructureInstance(APIView):
     """
     API endpoint to soft delete a specific instance of a course from a course structure.

@@ -50,6 +50,16 @@ from exam.serializers.createcourseserializers import (
     CreateQuizSerializer,
     CreateQuestionSerializer,
 )
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count
+from django.db.models import Count
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 import pandas as pd
 
 # =================================================================
@@ -161,11 +171,6 @@ class CountClientCompletedCourseView(APIView):
 # =================================================================
 # employer dashboard
 # =================================================================
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-
 class ActiveEnrolledUserCountPerCustomerView(APIView):
     """
     Get API for client admin to count active enrolled users per customer ID.
@@ -188,11 +193,6 @@ class ActiveEnrolledUserCountPerCustomerView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-from django.db.models import Count
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 class RegisteredCourseCountView(APIView):
     """
     Get API for client admin to count registered courses per customer ID.
@@ -320,10 +320,6 @@ class RegisteredCourseCountView(APIView):
 #         except Exception as e:
 #             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Count
 
 class ProgressCountView(APIView):
     """
