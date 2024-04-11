@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            margin: 0;
+            padding: 0;
+        }
+ 
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+ 
+        .dashboard {
+            font-size: 36px;
+            color: #000;
+            margin: 0;
+            margin-left: 200px;
+        }
+ 
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+ 
+        .box {
+            width: 501px;
+            height: 150px;
+            border: 2px solid #4CAF50;
+            background-color: #fff;
+            margin: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+ 
+        .box:hover {
+            transform: scale(1.05);
+        }
+ 
+        .box-content {
+            padding: 10px;
+        }
+ 
+        .box h2 {
+            color: #4CAF50;
+            margin-top: 0;
+            font-size: 18px;
+        }
+ 
+        .box p {
+            color: #666;
+            margin: 0;
+            font-size: 24px;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+ 
+        .details {
+            font-size: 12px;
+            color: #4CAF50;
+            cursor: pointer;
+            transition: color 0.3s;
+            text-decoration: none;
+        }
+ 
+        .details:hover {
+            color: #2e7d32;
+        }
+ 
+        .chart-container {
+            max-width: 1054px;
+            margin: 20px auto;
+            border: 1px solid #000;
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+ 
+        .total-enrollment {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+ 
+        canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="dashboard">Employer Dashboard</h1>
+    </div>
+ 
+    <div class="container">
+        <div class="box">
+            <div class="box-content">
+                <h2>Number of Courses</h2>
+                <p class="number">{{ course_count }}</p>
+                <a href="course-details.html" class="details">View Details</a>
+            </div>
+        </div>
+        <div class="box">
+            <div class="box-content">
+                <h2>Number of Employees</h2>
+                <p class="number">{{ employee_count }}</p>
+                <a href="company-details.html" class="details">View Details</a>
+            </div>
+        </div>
+    </div>
+ 
+    <div class="chart-container">
+        <div class="total-enrollment" id="total-enrollment"></div>
+        <canvas id="enrollmentChart"></canvas>
+    </div>
+ 
+   
+ 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Course completion data passed from Django view
+        const completedCoursesData = {{ completed_courses_data|safe }};
+        const notStartedCoursesData = {{ not_started_courses_data|safe }};
+ 
+        // Create a stacked bar chart
+        const ctx = document.getElementById('enrollmentChart').getContext('2d');
+        const enrollmentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ courses|safe }},
+                datasets: [{
+                    label: 'Completed',
+                    data: completedCoursesData,
+                    backgroundColor: '#5D42D1',
+                    borderColor: '#5D42D1',
+                    borderWidth: 1
+                }, {
+                    label: 'Not Started',
+                    data: notStartedCoursesData,
+                    backgroundColor: '#EBEBEB',
+                    borderColor: '#EBEBEB',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                const datasetLabel = context.dataset.label || '';
+                                const value = context.parsed.y;
+                                const total = context.dataset.data.map(val => Math.abs(val)).reduce((acc, val) => acc + val, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                // Display completed count for completed section, not started count for not started section
+                                let count;
+                                if (datasetLabel === 'Completed') {
+                                    count = completedCoursesData[context.dataIndex];
+                                } else {
+                                    count = notStartedCoursesData[context.dataIndex];
+                                }
+                                return `${datasetLabel}: ${percentage*10}% (${count})`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
