@@ -1,3 +1,5 @@
+import json
+from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, render
@@ -52,6 +54,7 @@ from django.shortcuts import get_object_or_404
 from datetime import datetime
 
 import pandas as pd
+from custom_authentication.custom_mixins import SuperAdminMixin
 
 class DeleteSelectedCourseView(APIView):
     """
@@ -186,16 +189,29 @@ class DeleteSelectedQuestionView(APIView):
 
 
 
-class DeleteSelectedChoiceView(APIView):
+class DeleteSelectedChoiceView(SuperAdminMixin,APIView):
     """
     View to soft delete a selected choice instance from a question.
     """
 
     def patch(self, request, question_id):
+        
         # Retrieve the choice ID from the query parameters
-        choice_id = request.query_params.get('choice_id')
+        # choice_id = request.query_params.get('choice_id')
 
         try:
+            user_header = request.headers.get("user")
+            if user_header:
+                user = json.loads(user_header)
+                role_id = user.get("role")
+            else:
+                # Handle case where user information is not provided
+                return JsonResponse({"error": "User information not provided"}, status=400)
+
+            # Check if the user has super admin privileges
+            if not self.has_super_admin_privileges(request):
+                return JsonResponse({"error": "You do not have permission to access this resource"}, status=403)
+            choice_id = request.query_params.get('choice_id')
             # Retrieve the choice instance for the given question or raise DoesNotExist
             choice = get_object_or_404(Choice, id=choice_id, question_id=question_id)
 
@@ -217,13 +233,24 @@ class DeleteSelectedChoiceView(APIView):
 
 
 # views.py
-class DeleteCourseStructureInstance(APIView):
+class DeleteCourseStructureInstance(SuperAdminMixin,APIView):
     """
     API endpoint to soft delete a specific instance of a course from a course structure.
     """
 
     def patch(self, request, course_id):
         try:
+            user_header = request.headers.get("user")
+            if user_header:
+                user = json.loads(user_header)
+                role_id = user.get("role")
+            else:
+                # Handle case where user information is not provided
+                return JsonResponse({"error": "User information not provided"}, status=400)
+
+            # Check if the user has super admin privileges
+            if not self.has_super_admin_privileges(request):
+                return JsonResponse({"error": "You do not have permission to access this resource"}, status=403)
             # Get the instance ID from the query parameters
             instance_id = request.query_params.get('DeleteCourseStructureInstance_id')
             # Retrieve the course structure instance

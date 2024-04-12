@@ -75,12 +75,6 @@ class Course(models.Model):
     class Meta:
         db_table = 'course'
 
-# def course_pre_save_receiver(sender, instance, *args, **kwargs):
-#     if not instance.slug:
-#         instance.slug = unique_slug_generator(instance)
-
-# pre_save.connect(course_pre_save_receiver, sender=Course)
-
 @receiver(post_save, sender=Course)
 def log_save(sender, instance, created, **kwargs):
     verb = "created" if created else "updated"
@@ -149,9 +143,6 @@ class CourseEnrollment(models.Model):
     
     class Meta:
         db_table = 'course_enrollment'
-
-    # def get_absolute_url(self):
-    #     return reverse("edit_allocated_course", kwargs={"pk": self.pk})
     
 # -------------------------------------
     # upload reading material models
@@ -168,9 +159,7 @@ class UploadReadingMaterial(models.Model):
     
     class Meta:
         db_table = 'upload_reading_material'
-    
-    # def __str__(self):
-    #     return self.title
+
     
     def delete(self, *args, **kwargs):
         self.reading_content.delete()
@@ -193,11 +182,7 @@ def log_delete(sender, instance, **kwargs):
     ActivityLog.objects.create(
         message=f"The file '{instance.title}' of the course '{instance.courses}' has been deleted."
     )
-    
-# class ReadingMaterialCourse(models.Model):
-#     upload_reading_material = models.ForeignKey(UploadReadingMaterial, on_delete=models.CASCADE)
-#     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-# TODO: to know how updated_at is updated and how will we will be able to use to update updated at of course
+
     
 # -------------------------------------
     # upload video models
@@ -262,10 +247,7 @@ def log_delete(sender, instance, **kwargs):
         message=f"The video '{instance.title}' of the course '{instance.courses}' has been deleted."
     )
     
-# class VideoCourse(models.Model):
-#     upload_video_material = models.ForeignKey(UploadVideo, on_delete=models.CASCADE)
-#     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    
+
 # -------------------------------------
     # Quiz models
 # -------------------------------------
@@ -359,10 +341,7 @@ def quiz_pre_save_receiver(sender, instance, *args, **kwargs):
         instance.slug = unique_slug_generator(instance)
 pre_save.connect(quiz_pre_save_receiver, sender=Quiz)
     
-# class QuizCourse(models.Model):
-#     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-#     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    
+
 class Question(models.Model):
     quizzes = models.ManyToManyField(Quiz, related_name='questions')
     figure = models.ImageField(                             
@@ -439,11 +418,11 @@ class Question(models.Model):
 
 
 class Choice(models.Model):
-    deleted_at = models.DateTimeField(null=True)
-    active = models.BooleanField(default=True)
     question = models.ForeignKey(
         Question, verbose_name=_("Question"), on_delete=models.CASCADE
     )
+    active = models.BooleanField(default= True)
+    deleted_at = models.DateTimeField(null=True)
 
     choice = models.CharField(
         max_length=1000,
@@ -683,13 +662,6 @@ class QuizAttemptHistory(models.Model):
         total = self.get_max_score
         return answered, total
 
-# class QuizQuestion(models.Model):
-#     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-#     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-
-    
-# class Progress(models.Model):
-#     pass
 
 class ProgressManager(models.Manager):
     def new_progress(self, enrolled_user):
@@ -699,9 +671,6 @@ class ProgressManager(models.Manager):
 
 
 class Progress(models.Model):
-    # user = models.OneToOneField(
-    #     settings.AUTH_USER_MODEL, verbose_name=_("User"), on_delete=models.CASCADE
-    # )
     enrolled_user = models.ForeignKey(User, on_delete=models.CASCADE)
     score = models.CharField(
         max_length=1024,
@@ -823,4 +792,3 @@ class QuizScore(models.Model):
     active = models.BooleanField(default=True)
     class Meta:
         db_table = 'quiz_score'
-

@@ -61,6 +61,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 import pandas as pd
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.http import JsonResponse
+from custom_authentication.custom_mixins import ClientAdminMixin
+
+import json
 
 # =================================================================
 # employee dashboard
@@ -171,35 +177,63 @@ class CountClientCompletedCourseView(APIView):
 # =================================================================
 # employer dashboard
 # =================================================================
-class ActiveEnrolledUserCountPerCustomerView(APIView):
+
+
+class ActiveEnrolledUserCountPerCustomerView(ClientAdminMixin, APIView):
     """
     Get API for client admin to count active enrolled users per customer ID.
     """
 
     def get(self, request):
         try:
+            # Extract user information from headers
+            user_header = request.headers.get("user")
+            if user_header:
+                user = json.loads(user_header)
+                role_id = user.get("role")
+            else:
+                # Handle case where user information is not provided
+                return JsonResponse({"error": "User information not provided"}, status=400)
+
+            # Check if the user has client admin privileges
+            if not self.has_client_admin_privileges(request):
+                return JsonResponse({"error": "You do not have permission to access this resource"}, status=403)
+
             # Retrieve the customer ID from the request query parameters
             customer_id = request.query_params.get('customer_id')
 
             # Check if customer_id is provided
             if customer_id is None:
-                return Response({"error": "Customer ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+                return JsonResponse({"error": "Customer ID is required"}, status=400)
 
             # Query the User model to count the number of users for the given customer ID
             user_count = User.objects.filter(customer_id=customer_id).count()
 
             # Return the count in the response
-            return Response({"user_count": user_count}, status=status.HTTP_200_OK)
+            return JsonResponse({"user_count": user_count}, status=200)
 
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-class RegisteredCourseCountView(APIView):
+            return JsonResponse({"error": str(e)}, status=500)
+
+
+class RegisteredCourseCountView(ClientAdminMixin,APIView):
     """
     Get API for client admin to count registered courses per customer ID.
     """
 
     def get(self, request):
         try:
+            user_header = request.headers.get("user")
+            if user_header:
+                user = json.loads(user_header)
+                role_id = user.get("role")
+            else:
+                # Handle case where user information is not provided
+                return JsonResponse({"error": "User information not provided"}, status=400)
+
+            # Check if the user has client admin privileges
+            if not self.has_client_admin_privileges(request):
+                return JsonResponse({"error": "You do not have permission to access this resource"}, status=403)
             # Extract customer ID from request query parameters
             customer_id = request.query_params.get('customer_id')
 
@@ -321,13 +355,24 @@ class RegisteredCourseCountView(APIView):
 #             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class ProgressCountView(APIView):
+class ProgressCountView(ClientAdminMixin,APIView):
     """
     API endpoint to get the count of users in different progress states for each registered course.
     """
 
     def get(self, request):
         try:
+            user_header = request.headers.get("user")
+            if user_header:
+                user = json.loads(user_header)
+                role_id = user.get("role")
+            else:
+                # Handle case where user information is not provided
+                return JsonResponse({"error": "User information not provided"}, status=400)
+
+            # Check if the user has client admin privileges
+            if not self.has_client_admin_privileges(request):
+                return JsonResponse({"error": "You do not have permission to access this resource"}, status=403)
             # Fetch all registered courses
             registered_courses = CourseCompletionStatusPerUser.objects.all().values_list('course_id', flat=True).distinct()
 
