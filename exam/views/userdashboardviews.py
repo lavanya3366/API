@@ -207,7 +207,7 @@ class ActiveEnrolledUserCountPerCustomerView(ClientAdminMixin, APIView):
                 return JsonResponse({"error": "Customer ID is required"}, status=400)
 
             # Query the User model to count the number of users for the given customer ID
-            user_count = User.objects.filter(customer_id=customer_id).count()
+            user_count = User.objects.filter(customer_id=customer_id,status='active').count()
 
             # Return the count in the response
             return JsonResponse({"user_count": user_count}, status=200)
