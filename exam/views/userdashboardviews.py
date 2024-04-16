@@ -223,18 +223,6 @@ class RegisteredCourseCountView(ClientAdminMixin,APIView):
 
     def get(self, request):
         try:
-            user_header = request.headers.get("user")
-            if user_header:
-                user = json.loads(user_header)
-                role_id = user.get("role")
-            else:
-                # Handle case where user information is not provided
-                return JsonResponse({"error": "User information not provided"}, status=400)
-
-            # Check if the user has client admin privileges
-            if not self.has_client_admin_privileges(request):
-                return JsonResponse({"error": "You do not have permission to access this resource"}, status=403)
-            # Extract customer ID from request query parameters
             customer_id = request.query_params.get('customer_id')
 
             if customer_id is None:
@@ -246,13 +234,17 @@ class RegisteredCourseCountView(ClientAdminMixin,APIView):
             if not customer_exists:
                 raise CourseRegisterRecord.DoesNotExist("Customer does not exist")
 
-            # Grouping course registrations by customer and counting the number of registrations per customer
-            registered_course_counts = CourseRegisterRecord.objects.filter(customer__id=customer_id).values('course').distinct().count()
+            # Counting only the active registered courses per customer
+            registered_course_counts = CourseRegisterRecord.objects.filter(
+                customer_id=customer_id, 
+                active=True,  # Only active registrations
+                course__active=True  # Only active courses
+            ).values('course').distinct().count()
             
             # Constructing response data
             response_data = {
                 'customer_id': customer_id,
-                'course_count': registered_course_counts
+                'active_course_count': registered_course_counts
             }
             
             # Return response data
